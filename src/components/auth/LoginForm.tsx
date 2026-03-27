@@ -4,23 +4,25 @@
  * Form di login (accesso admin verificato da middleware + profilo)
  */
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Alert } from '@/components/ui/Alert';
 import { User, Lock } from 'lucide-react';
 
-export function LoginForm() {
+interface LoginFormProps {
+  loginError?: string;
+}
+
+export function LoginForm({ loginError }: LoginFormProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const supabase = createClient();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const loginError = searchParams.get('error');
   const externalError =
     loginError === 'unauthorized_admin'
       ? 'Accesso consentito solo all\'utente admin'
