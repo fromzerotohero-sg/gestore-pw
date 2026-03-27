@@ -47,7 +47,7 @@ export function LoginForm() {
       if (authError) {
         // Se l'utente non esiste ancora su Supabase
         if (authError.message.includes('Invalid login credentials')) {
-          setError('Utente non trovato su Supabase. Crea prima l\'utente (vedi istruzioni sotto).');
+          setError('Utente non trovato su Supabase. Contatta l\'amministratore.');
         } else {
           setError(authError.message);
         }
@@ -97,17 +97,6 @@ export function LoginForm() {
       >
         Accedi
       </Button>
-
-      <div className="text-xs text-gray-500 text-center">
-        <p>Accesso riservato al personale autorizzato</p>
-        <p className="mt-1">
-          Prima di accedere, crea l&apos;utente su Supabase:
-          <br />
-          <strong>Email:</strong> fromzerotohero@fromzerotohero.io
-          <br />
-          <strong>Password:</strong> Attiteogio
-        </p>
-      </div>
     </form>
   );
 }
