@@ -2,8 +2,7 @@
 
 /**
  * Hook per gestione CRUD credenziali
- * Gestisce fetch, creazione, modifica ed eliminazione
- * Nessun controllo ruoli - accesso completo
+ * Semplificato - nessuna relazione esterna
  */
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
@@ -24,7 +23,7 @@ export function useCredentials(userId: string | undefined) {
 
   const supabase = createClient();
 
-  // Fetch credenziali
+  // Fetch credenziali - query semplificata senza relazioni
   const fetchCredentials = useCallback(async () => {
     if (!userId) {
       setState({ credentials: [], loading: false, error: null });
@@ -36,21 +35,21 @@ export function useCredentials(userId: string | undefined) {
     try {
       const { data, error } = await supabase
         .from('credentials')
-        .select(`
-          *,
-          creator:created_by (id, email, role),
-          updater:updated_by (id, email, role)
-        `)
+        .select('*')
         .order('service_name', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw new Error(error.message);
+      }
 
       setState({
-        credentials: (data as unknown as Credential[]) || [],
+        credentials: (data as Credential[]) || [],
         loading: false,
         error: null,
       });
     } catch (err) {
+      console.error('Fetch error:', err);
       setState({
         credentials: [],
         loading: false,
@@ -155,7 +154,6 @@ export function useFilteredCredentials(
 ) {
   return useMemo(() => {
     return credentials.filter((cred) => {
-      // Filtro per ricerca testuale
       const searchLower = filters.search.toLowerCase();
       const matchesSearch =
         !filters.search ||
@@ -165,7 +163,6 @@ export function useFilteredCredentials(
         (cred.url && cred.url.toLowerCase().includes(searchLower)) ||
         (cred.notes && cred.notes.toLowerCase().includes(searchLower));
 
-      // Filtro per categoria
       const matchesCategory =
         !filters.category || cred.category === filters.category;
 
