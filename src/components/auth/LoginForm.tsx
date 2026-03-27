@@ -1,56 +1,44 @@
 'use client';
 
 /**
- * Form di login con credenziali hardcoded
- * Accetta solo: fromzerotohero / Attiteogio
+ * Form di login (accesso admin verificato da middleware + profilo)
  */
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Alert } from '@/components/ui/Alert';
 import { User, Lock } from 'lucide-react';
 
-// Credenziali autorizzate
-const ALLOWED_USERNAME = 'fromzerotohero';
-const ALLOWED_PASSWORD = 'Attiteogio';
-
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
   
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const loginError = searchParams.get('error');
+  const externalError =
+    loginError === 'unauthorized_admin'
+      ? 'Accesso consentito solo all\'utente admin'
+      : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    // Verifica credenziali hardcoded
-    if (username !== ALLOWED_USERNAME || password !== ALLOWED_PASSWORD) {
-      setError('Username o password non validi');
-      setLoading(false);
-      return;
-    }
-
     try {
-      // Login su Supabase con email completa
       const { error: authError } = await supabase.auth.signInWithPassword({
-        email: 'fromzerotohero@fromzerotohero.io',
-        password: ALLOWED_PASSWORD,
+        email,
+        password,
       });
 
       if (authError) {
-        // Se l'utente non esiste ancora su Supabase
-        if (authError.message.includes('Invalid login credentials')) {
-          setError('Utente non trovato su Supabase. Contatta l\'amministratore.');
-        } else {
-          setError(authError.message);
-        }
+        setError(authError.message);
         setLoading(false);
         return;
       }
@@ -65,17 +53,18 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {externalError && <Alert type="error">{externalError}</Alert>}
       {error && <Alert type="error">{error}</Alert>}
 
       <Input
-        label="Username"
-        type="text"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        placeholder="fromzerotohero"
+        label="Email admin"
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="admin@azienda.com"
         icon={<User className="h-5 w-5" />}
         required
-        autoComplete="username"
+        autoComplete="email"
       />
 
       <Input

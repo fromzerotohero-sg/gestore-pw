@@ -2,7 +2,7 @@
 
 /**
  * Hook per gestione autenticazione
- * Utente unico con ruolo admin fisso
+ * Accesso consentito solo a profili admin (tabella profiles)
  */
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
@@ -33,12 +33,23 @@ export function useAuth() {
         return;
       }
 
-      // Utente sempre admin
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', authUser.id)
+        .single();
+
+      if (profileError || profile?.role !== 'admin') {
+        await supabase.auth.signOut();
+        setState({ user: null, loading: false, error: 'Accesso consentito solo all\'admin' });
+        return;
+      }
+
       setState({
         user: {
           id: authUser.id,
           email: authUser.email!,
-          role: 'admin', // Forzato admin
+          role: profile.role,
         },
         loading: false,
         error: null,
@@ -48,19 +59,13 @@ export function useAuth() {
     }
   }, [supabase]);
 
-  // Login con username/password hardcoded
-  const login = async (username: string, password: string): Promise<{ error?: string }> => {
+  // Login standard con email e password Supabase
+  const login = async (email: string, password: string): Promise<{ error?: string }> => {
     setState(prev => ({ ...prev, loading: true, error: null }));
-    
-    // Verifica credenziali hardcoded
-    if (username !== 'fromzerotohero' || password !== 'Attiteogio') {
-      setState(prev => ({ ...prev, loading: false, error: 'Credenziali non valide' }));
-      return { error: 'Credenziali non valide' };
-    }
 
     const { error } = await supabase.auth.signInWithPassword({
-      email: 'fromzerotohero@fromzerotohero.io',
-      password: 'Attiteogio',
+      email,
+      password,
     });
 
     if (error) {
@@ -100,6 +105,6 @@ export function useAuth() {
     login,
     logout,
     refresh: loadUser,
-    isAdmin: true, // Sempre true
+    isAdmin: state.user?.role === 'admin',
   };
 }
