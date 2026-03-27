@@ -2,7 +2,7 @@
 
 /**
  * Hook per gestione autenticazione
- * Accesso consentito solo a profili admin (tabella profiles)
+ * Autenticazione base (single-user app)
  */
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
@@ -33,23 +33,11 @@ export function useAuth() {
         return;
       }
 
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', authUser.id)
-        .single();
-
-      if (profileError || profile?.role !== 'admin') {
-        await supabase.auth.signOut();
-        setState({ user: null, loading: false, error: 'Accesso consentito solo all\'admin' });
-        return;
-      }
-
       setState({
         user: {
           id: authUser.id,
           email: authUser.email!,
-          role: profile.role,
+          role: 'admin',
         },
         loading: false,
         error: null,
@@ -105,6 +93,6 @@ export function useAuth() {
     login,
     logout,
     refresh: loadUser,
-    isAdmin: state.user?.role === 'admin',
+    isAdmin: !!state.user,
   };
 }

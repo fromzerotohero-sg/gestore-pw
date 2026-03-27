@@ -23,17 +23,6 @@ export default async function DashboardPage() {
     redirect('/auth/login');
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-
-  if (profile?.role !== 'admin') {
-    await supabase.auth.signOut();
-    redirect('/auth/login?error=unauthorized_admin');
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       <DashboardHeader userEmail={user.email!} />

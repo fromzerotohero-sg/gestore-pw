@@ -11,11 +11,7 @@ import { Input } from '@/components/ui/Input';
 import { Alert } from '@/components/ui/Alert';
 import { User, Lock } from 'lucide-react';
 
-interface LoginFormProps {
-  loginError?: string;
-}
-
-export function LoginForm({ loginError }: LoginFormProps) {
+export function LoginForm() {
   const router = useRouter();
   const supabase = createClient();
   
@@ -23,10 +19,7 @@ export function LoginForm({ loginError }: LoginFormProps) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const externalError =
-    loginError === 'unauthorized_admin'
-      ? 'Accesso consentito solo all\'utente admin'
-      : null;
+  const externalError = null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
