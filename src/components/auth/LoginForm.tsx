@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * Form di login
- * Gestisce autenticazione email/password
+ * Form di login con credenziali hardcoded
+ * Accetta solo: fromzerotohero / Attiteogio
  */
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -10,13 +10,17 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Alert } from '@/components/ui/Alert';
-import { Mail, Lock } from 'lucide-react';
+import { User, Lock } from 'lucide-react';
+
+// Credenziali autorizzate
+const ALLOWED_USERNAME = 'fromzerotohero';
+const ALLOWED_PASSWORD = 'Attiteogio';
 
 export function LoginForm() {
   const router = useRouter();
   const supabase = createClient();
   
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,17 +30,28 @@ export function LoginForm() {
     setLoading(true);
     setError(null);
 
+    // Verifica credenziali hardcoded
+    if (username !== ALLOWED_USERNAME || password !== ALLOWED_PASSWORD) {
+      setError('Username o password non validi');
+      setLoading(false);
+      return;
+    }
+
     try {
+      // Login su Supabase con email completa
       const { error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: 'fromzerotohero@fromzerotohero.io',
+        password: ALLOWED_PASSWORD,
       });
 
       if (authError) {
-        setError(authError.message === 'Invalid login credentials'
-          ? 'Email o password non validi'
-          : authError.message
-        );
+        // Se l'utente non esiste ancora su Supabase
+        if (authError.message.includes('Invalid login credentials')) {
+          setError('Utente non trovato su Supabase. Crea prima l\'utente (vedi istruzioni sotto).');
+        } else {
+          setError(authError.message);
+        }
+        setLoading(false);
         return;
       }
 
@@ -44,7 +59,6 @@ export function LoginForm() {
       router.refresh();
     } catch {
       setError('Errore durante il login. Riprova.');
-    } finally {
       setLoading(false);
     }
   };
@@ -54,14 +68,14 @@ export function LoginForm() {
       {error && <Alert type="error">{error}</Alert>}
 
       <Input
-        label="Email"
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="nome@azienda.com"
-        icon={<Mail className="h-5 w-5" />}
+        label="Username"
+        type="text"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        placeholder="fromzerotohero"
+        icon={<User className="h-5 w-5" />}
         required
-        autoComplete="email"
+        autoComplete="username"
       />
 
       <Input
@@ -83,6 +97,17 @@ export function LoginForm() {
       >
         Accedi
       </Button>
+
+      <div className="text-xs text-gray-500 text-center">
+        <p>Accesso riservato al personale autorizzato</p>
+        <p className="mt-1">
+          Prima di accedere, crea l&apos;utente su Supabase:
+          <br />
+          <strong>Email:</strong> fromzerotohero@fromzerotohero.io
+          <br />
+          <strong>Password:</strong> Attiteogio
+        </p>
+      </div>
     </form>
   );
 }
