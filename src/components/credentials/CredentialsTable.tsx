@@ -2,7 +2,7 @@
 
 /**
  * Tabella credenziali con azioni
- * Visualizza tutte le credenziali con ricerca e filtri
+ * Accesso completo - nessuna distinzione ruoli
  */
 import { useState } from 'react';
 import {
@@ -28,7 +28,7 @@ import { CREDENTIAL_CATEGORIES, type CredentialFormData } from '@/types';
 import * as XLSX from 'xlsx';
 
 export function CredentialsTable() {
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   const {
     credentials,
     loading,
@@ -79,7 +79,6 @@ export function CredentialsTable() {
 
   // Crea nuova credenziale
   const handleCreate = async (data: CredentialFormData) => {
-    if (!isAdmin) return { error: 'Permesso negato' };
     const result = await createCredential(data);
     if (!result.error) {
       setIsCreateModalOpen(false);
@@ -91,7 +90,7 @@ export function CredentialsTable() {
 
   // Aggiorna credenziale
   const handleUpdate = async (data: CredentialFormData) => {
-    if (!isAdmin || !editingCredential) return { error: 'Permesso negato' };
+    if (!editingCredential) return { error: 'Nessuna credenziale selezionata' };
     const result = await updateCredential(editingCredential.id, data);
     if (!result.error) {
       setEditingCredential(null);
@@ -103,7 +102,7 @@ export function CredentialsTable() {
 
   // Elimina credenziale
   const handleDelete = async () => {
-    if (!isAdmin || !deletingCredential) return;
+    if (!deletingCredential) return;
     const result = await deleteCredential(deletingCredential.id);
     if (result.error) {
       setActionError(result.error);
@@ -133,14 +132,14 @@ export function CredentialsTable() {
 
     // Auto-width colonne
     const colWidths = [
-      { wch: 20 }, // Servizio
-      { wch: 15 }, // Categoria
-      { wch: 30 }, // Username
-      { wch: 25 }, // Password
-      { wch: 30 }, // URL
-      { wch: 40 }, // Note
-      { wch: 18 }, // Data creazione
-      { wch: 18 }, // Ultima modifica
+      { wch: 20 },
+      { wch: 15 },
+      { wch: 30 },
+      { wch: 25 },
+      { wch: 30 },
+      { wch: 40 },
+      { wch: 18 },
+      { wch: 18 },
     ];
     worksheet['!cols'] = colWidths;
 
@@ -211,11 +210,9 @@ export function CredentialsTable() {
             <FileSpreadsheet className="h-4 w-4 mr-2" />
             Esporta Excel
           </Button>
-          {isAdmin && (
-            <Button onClick={() => setIsCreateModalOpen(true)}>
-              + Nuova credenziale
-            </Button>
-          )}
+          <Button onClick={() => setIsCreateModalOpen(true)}>
+            + Nuova credenziale
+          </Button>
         </div>
       </div>
 
@@ -324,26 +321,20 @@ export function CredentialsTable() {
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-center">
                     <div className="flex items-center justify-center gap-2">
-                      {isAdmin ? (
-                        <>
-                          <button
-                            onClick={() => setEditingCredential(cred)}
-                            className="text-blue-600 hover:text-blue-800"
-                            title="Modifica"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => setDeletingCredential(cred)}
-                            className="text-red-600 hover:text-red-800"
-                            title="Elimina"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </>
-                      ) : (
-                        <span className="text-xs text-gray-400">Sola lettura</span>
-                      )}
+                      <button
+                        onClick={() => setEditingCredential(cred)}
+                        className="text-blue-600 hover:text-blue-800"
+                        title="Modifica"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => setDeletingCredential(cred)}
+                        className="text-red-600 hover:text-red-800"
+                        title="Elimina"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
                   </td>
                 </tr>

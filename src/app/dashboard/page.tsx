@@ -6,7 +6,6 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { CredentialsTable } from '@/components/credentials/CredentialsTable';
 import { DashboardHeader } from '@/components/credentials/DashboardHeader';
-import type { UserRole } from '@/types';
 
 export const metadata = {
   title: 'Dashboard | Gestione Credenziali',
@@ -24,19 +23,9 @@ export default async function DashboardPage() {
     redirect('/auth/login');
   }
 
-  // Recupera profilo per mostrare info utente
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single<{ role: UserRole }>();
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardHeader 
-        userEmail={user.email!} 
-        userRole={profile?.role || 'viewer'} 
-      />
+      <DashboardHeader userEmail={user.email!} />
       
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 sm:px-0">

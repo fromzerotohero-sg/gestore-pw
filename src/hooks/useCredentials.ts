@@ -3,6 +3,7 @@
 /**
  * Hook per gestione CRUD credenziali
  * Gestisce fetch, creazione, modifica ed eliminazione
+ * Nessun controllo ruoli - accesso completo
  */
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';

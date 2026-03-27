@@ -2,11 +2,11 @@
 
 /**
  * Hook per gestione autenticazione
- * Fornisce metodi per login, logout e controllo sessione
+ * Utente unico con ruolo admin fisso
  */
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import type { AuthUser, UserRole } from '@/types';
+import type { AuthUser } from '@/types';
 
 interface AuthState {
   user: AuthUser | null;
@@ -33,23 +33,12 @@ export function useAuth() {
         return;
       }
 
-      // Recupera profilo con ruolo
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', authUser.id)
-        .single<{ role: UserRole }>();
-
-      if (profileError) {
-        setState({ user: null, loading: false, error: 'Errore caricamento profilo' });
-        return;
-      }
-
+      // Utente sempre admin
       setState({
         user: {
           id: authUser.id,
           email: authUser.email!,
-          role: (profile?.role as UserRole) || 'viewer',
+          role: 'admin', // Forzato admin
         },
         loading: false,
         error: null,
@@ -59,13 +48,19 @@ export function useAuth() {
     }
   }, [supabase]);
 
-  // Login con email/password
-  const login = async (email: string, password: string): Promise<{ error?: string }> => {
+  // Login con username/password hardcoded
+  const login = async (username: string, password: string): Promise<{ error?: string }> => {
     setState(prev => ({ ...prev, loading: true, error: null }));
     
+    // Verifica credenziali hardcoded
+    if (username !== 'fromzerotohero' || password !== 'Attiteogio') {
+      setState(prev => ({ ...prev, loading: false, error: 'Credenziali non valide' }));
+      return { error: 'Credenziali non valide' };
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+      email: 'fromzerotohero@fromzerotohero.io',
+      password: 'Attiteogio',
     });
 
     if (error) {
@@ -105,6 +100,6 @@ export function useAuth() {
     login,
     logout,
     refresh: loadUser,
-    isAdmin: state.user?.role === 'admin',
+    isAdmin: true, // Sempre true
   };
 }

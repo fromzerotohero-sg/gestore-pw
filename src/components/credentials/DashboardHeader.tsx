@@ -2,19 +2,18 @@
 
 /**
  * Header della dashboard con info utente e logout
+ * Semplificato - nessuna distinzione ruoli
  */
 import { LogOut, User, Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useState } from 'react';
-import type { UserRole } from '@/types';
 
 interface DashboardHeaderProps {
   userEmail: string;
-  userRole: UserRole;
 }
 
-export function DashboardHeader({ userEmail, userRole }: DashboardHeaderProps) {
+export function DashboardHeader({ userEmail }: DashboardHeaderProps) {
   const router = useRouter();
   const supabase = createClient();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -47,18 +46,6 @@ export function DashboardHeader({ userEmail, userRole }: DashboardHeaderProps) {
             <div className="hidden sm:flex items-center gap-2 text-sm text-gray-600">
               <User className="h-4 w-4" />
               <span>{userEmail}</span>
-              <span
-                className={`
-                  px-2 py-0.5 rounded-full text-xs font-medium
-                  ${
-                    userRole === 'admin'
-                      ? 'bg-purple-100 text-purple-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }
-                `}
-              >
-                {userRole === 'admin' ? 'Admin' : 'Viewer'}
-              </span>
             </div>
             <button
               onClick={handleLogout}
